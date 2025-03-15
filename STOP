@@ -63,8 +63,23 @@ local function teleportToBossAndKill()
         
         if boss then
             print("Boss found at path: ", boss:GetFullName())  -- Debugging the full path of the boss
-            -- Look for the "Head" part or any part that can serve as the head, including inside other objects
-            local head = boss:FindFirstChild("Head") or boss:FindFirstChildOfClass("MeshPart") or boss:FindFirstChildOfClass("Accessory") -- Try all possibilities
+
+            -- Search for different possible head parts
+            local head = nil
+
+            -- Check for 'Head' part
+            head = boss:FindFirstChild("Head")
+
+            -- If not found, try searching for other parts (MeshPart, Accessory, etc.)
+            if not head then
+                head = boss:FindFirstChildOfClass("MeshPart")
+            end
+
+            if not head then
+                head = boss:FindFirstChildOfClass("Accessory")
+            end
+
+            -- If a head part was found
             if head then
                 print("Found the head part: " .. head:GetFullName())
                 -- Teleport the character to the boss's head
