@@ -1,0 +1,90 @@
+local player = game.Players.LocalPlayer
+
+-- UI Setup
+local screenGui = Instance.new("ScreenGui", game.CoreGui)
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 250, 0, 100)
+frame.Position = UDim2.new(0.5, -125, 0.2, 0)
+frame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
+
+local uiGlow = Instance.new("UIStroke", frame)
+uiGlow.Color = Color3.fromRGB(255, 0, 0)
+uiGlow.Thickness = 3
+
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(1, 0, 0.5, 0)
+button.Text = "ENABLE AUTO FARM"
+button.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+button.TextColor3 = Color3.fromRGB(255, 50, 50)
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 18
+
+local statusLabel = Instance.new("TextLabel", frame)
+statusLabel.Size = UDim2.new(1, 0, 0.5, 0)
+statusLabel.Position = UDim2.new(0, 0, 0.5, 0)
+statusLabel.Text = "Status: Idle"
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.Font = Enum.Font.SourceSansBold
+statusLabel.TextSize = 16
+
+local farming = false
+
+-- Debug check: Ensure the button exists and print its details
+if button then
+    print("Button successfully created")  -- Check if the button was created properly
+
+    -- MouseButton1Click event
+    button.MouseButton1Click:Connect(function()
+        farming = not farming
+        print("Farming state: " .. tostring(farming))  -- Check farming state
+        if farming then
+            button.Text = "DISABLE AUTO FARM"
+            button.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            statusLabel.Text = "Status: Farming"
+        else
+            button.Text = "ENABLE AUTO FARM"
+            button.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+            statusLabel.Text = "Status: Idle"
+        end
+    end)
+else
+    print("Error: Button not created correctly")
+end
+
+-- Anti-AFK Script
+local vu = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    vu:CaptureController()
+    vu:ClickButton2(Vector2.new())
+end)
+
+-- Function for Teleporting to the Boss and Killing it
+local function teleportToBossAndKill()
+    while farming do
+        local boss = workspace:FindFirstChild("BadTimeTrioBoss")
+        if boss and boss:FindFirstChild("Head") then
+            print("Boss Found! Teleporting...")  -- Debug: Ensure we found the boss
+            player.Character:SetPrimaryPartCFrame(boss.Head.CFrame)
+            -- Add head removal here if needed
+            print("Teleport successful!")
+            task.wait(2)  -- Wait for a moment before checking again
+        else
+            print("Boss not found, retrying...")  -- Debug: Boss not found message
+        end
+        task.wait(1)
+    end
+end
+
+-- Start the teleport and kill function when farming is enabled
+task.spawn(function()
+    while true do
+        if farming then
+            teleportToBossAndKill()  -- Call function when farming is enabled
+        end
+        task.wait(0.1)
+    end
+end)
