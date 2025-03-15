@@ -1,0 +1,93 @@
+local player = game.Players.LocalPlayer
+
+-- UI Setup
+local screenGui = Instance.new("ScreenGui", game.CoreGui)
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 250, 0, 100)
+frame.Position = UDim2.new(0.5, -125, 0.2, 0)
+frame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
+
+local uiGlow = Instance.new("UIStroke", frame)
+uiGlow.Color = Color3.fromRGB(255, 0, 0)
+uiGlow.Thickness = 3
+
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(1, 0, 0.5, 0)
+button.Text = "ENABLE AUTO FARM"
+button.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+button.TextColor3 = Color3.fromRGB(255, 50, 50)
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 18
+
+local statusLabel = Instance.new("TextLabel", frame)
+statusLabel.Size = UDim2.new(1, 0, 0.5, 0)
+statusLabel.Position = UDim2.new(0, 0, 0.5, 0)
+statusLabel.Text = "Status: Idle"
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.Font = Enum.Font.SourceSansBold
+statusLabel.TextSize = 16
+
+local farming = false
+
+-- Button click event to toggle farming state
+button.MouseButton1Click:Connect(function()
+    farming = not farming
+    print("Farming state: " .. tostring(farming))
+    if farming then
+        button.Text = "DISABLE AUTO FARM"
+        button.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        statusLabel.Text = "Status: Farming"
+    else
+        button.Text = "ENABLE AUTO FARM"
+        button.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+        statusLabel.Text = "Status: Idle"
+    end
+end)
+
+-- Anti-AFK Script
+local vu = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    vu:CaptureController()
+    vu:ClickButton2(Vector2.new())
+end)
+
+-- Function to Teleport and Kill Boss
+local function teleportToBossAndKill()
+    while farming do
+        -- Check if the BadTimeTrioBoss is in the workspace
+        local boss = workspace:FindFirstChild("BadTimeTrioBoss")
+        
+        if boss then
+            print("Boss found at path: ", boss:GetFullName())  -- Debugging the full path of the boss
+            -- Look for the "Head" part or any part that can serve as the head
+            local head = boss:FindFirstChild("Head") or boss:FindFirstChildOfClass("MeshPart") -- Try MeshPart if "Head" doesn't exist
+            if head then
+                print("Found the head part: " .. head:GetFullName())
+                -- Teleport the character to the boss's head
+                player.Character:SetPrimaryPartCFrame(head.CFrame)
+                -- Kill the boss by deleting its head (or any other method you use)
+                print("Teleported to the boss and ready to kill!")
+                task.wait(2)  -- Wait before checking again
+            else
+                print("No head part found for the boss!")
+            end
+        else
+            print("Boss not found, retrying...")  -- Debugging
+        end
+        task.wait(1)
+    end
+end
+
+-- Start the teleport and kill function when farming is enabled
+task.spawn(function()
+    while true do
+        if farming then
+            teleportToBossAndKill()
+        end
+        task.wait(0.1)
+    end
+end)
